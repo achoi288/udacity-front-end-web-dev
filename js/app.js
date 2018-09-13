@@ -29,6 +29,7 @@ let openedCard;
 let moveCounter;
 let timerSeconds;
 let timerHandle;
+let timerString;
 let starRating;
 let isCheckingForMatch;
 
@@ -40,6 +41,9 @@ let starElements;
 let movesElement;
 let deckElement;
 let cardElements;
+let modalGameOverElement;
+let gameSummaryElement;
+let playAgainElement;
 
 /*
  * @description Update the star rating based on the number of moves made.
@@ -114,7 +118,7 @@ function getTimerText(timerSeconds) {
     if (minutes < 10) { minutes = '0' + minutes; }
     if (seconds < 10) { seconds = '0' + seconds; }
 
-    return hours + ':' + minutes + ':' + seconds;
+    return `${hours}:${minutes}:${seconds}`;
 }
 
 /*
@@ -122,7 +126,8 @@ function getTimerText(timerSeconds) {
  */
 function updateTimer(timeInSeconds) {
     timerSeconds = timeInSeconds;
-    timerElement.innerHTML = getTimerText(timerSeconds);
+    timerString = getTimerText(timerSeconds);
+    timerElement.innerHTML = timerString;
 }
 
 /*
@@ -198,20 +203,36 @@ function unmismatchCard(card) {
 }
 
 /*
- * @description Handle click event on the Restart button.
+ * @description Handle click event on the Restart element.
  */
 
-function restartButtonClicked() {
+function restartElementClicked() {
     shuffleCards();
+}
+
+/*
+ * @description Handle click event on the Play Again element.
+ */
+function playAgainElementClicked() {
+    modalGameOverElement.style.display = 'none';
+    shuffleCards();
+}
+
+/*
+ * @description Update the game summary text.
+ */
+function updateGameSummary() {
+    gameSummaryElement.textContent = `You made ${moveCounter} moves and earned ${starRating} out of 3 stars in a time of ${timerString}!`;
 }
 
 /*
  * @description Check if the game is over.
  */
 function checkGameOver() {
-    if (numMatches === 1) {
+    if (numMatches === 8) {
         stopTimer();
-        Console.log('you won!');
+        updateGameSummary();
+        modalGameOverElement.style.display = 'block';
     }
 }
 
@@ -228,6 +249,7 @@ function hideMismatchedCard(card) {
  * @description Check if a card matches an open card in play.
  */
 function checkForMatch(cardElement) {
+    incrementMovesCounter();
     const iElement = cardElement.getElementsByTagName('i').item(0);
     const openedCardIElement = openedCard.getElementsByTagName('i').item(0);
 
@@ -254,8 +276,6 @@ function checkForMatch(cardElement) {
             isCheckingForMatch = false;
         }, (1000));
     }
-
-    incrementMovesCounter();
 }
 
 /*
@@ -305,12 +325,12 @@ function populateDeck() {
     openedCard = undefined;
     clearDeck();
 
-    for (const card of cards) {
+    for (let card of cards) {
         const liElement = document.createElement('li');
-        liElement.setAttribute("class", "card");
+        liElement.setAttribute('class', 'card');
 
         const iElement = document.createElement('i');
-        iElement.setAttribute("class", card);
+        iElement.setAttribute('class', card);
 
         liElement.appendChild(iElement);
         deckElement.appendChild(liElement);
@@ -357,11 +377,15 @@ function startGame() {
     starElements = document.getElementsByClassName('stars').item(0).children;
     movesElement = document.getElementsByClassName('moves').item(0);
     deckElement = document.getElementsByClassName('deck').item(0);
-
+    modalGameOverElement = document.getElementsByClassName('game-over').item(0);
+    gameSummaryElement = document.getElementById('game-summary');
+    playAgainElement = document.getElementsByClassName('play-again').item(0);
+    
     shuffleCards();
 
     deckElement.addEventListener('click', function (e) { deckElementClicked(e) }, false);
-    document.getElementsByClassName('restart').item(0).addEventListener('click', restartButtonClicked, false);
+    document.getElementsByClassName('restart').item(0).addEventListener('click', restartElementClicked, false);
+    playAgainElement.addEventListener('click', playAgainElementClicked, false);
 }
 
 document.addEventListener('DOMContentLoaded', startGame, false);
